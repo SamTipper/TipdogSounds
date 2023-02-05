@@ -1,0 +1,7 @@
+discord
+py-cord
+fuzzywuzzy
+python-dotenv
+mutagen
+python-Levenshtein
+PyNaCl
