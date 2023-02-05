@@ -12,7 +12,7 @@ from mutagen.mp3 import MP3
 import random
 
 intents = discord.Intents.default()
-intents.message_content = True
+intents.messages = True
 intents.members = True
 env = load_dotenv()
 
