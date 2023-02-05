@@ -2,7 +2,7 @@ FROM ubuntu
 
 WORKDIR ./
 
-COPY requirements.txt ./
+COPY requirements requirements
 
 RUN pip install -r ./requirements.txt
 
