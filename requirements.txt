@@ -1,5 +1,5 @@
 discord
-py-cord==2.0.0b1
+py-cord
 fuzzywuzzy
 python-dotenv
 mutagen
