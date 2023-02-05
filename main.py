@@ -94,10 +94,6 @@ async def search_for_sound(args, state=None):
         return "Sound file not found, check your spelling and try again.", sound_found
 
 @client.slash_command()
-@discord.app_commands.describe(parameters={
-    "arg1": "play | list | random | leaderboard",
-    "arg2": "The name of the sound you would like"
-})
 async def sound(ctx, arg1, arg2=None):
     """Play a sound, find sounds, or set your theme tune as you enter the voice chat!"""
     if arg1.lower() == "list":
