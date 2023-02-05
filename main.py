@@ -153,7 +153,7 @@ async def play_sound(ctx, sound):
     if vc == True:
         active_voice = await voice_channel.connect()
         await asyncio.sleep(0.5)
-        active_voice.play(discord.FFmpegPCMAudio(executable='/usr/bin/ffmpeg',source=f"./sounds/{sound}.mp3"))
+        active_voice.play(discord.FFmpegPCMAudio(executable='ffmpeg',source=f"./sounds/{sound}.mp3"))
         # Wait until audio is finished and then leave the VC
         await asyncio.sleep(2)
         while active_voice.is_playing():
