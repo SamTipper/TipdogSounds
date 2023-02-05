@@ -38,11 +38,11 @@ async def play_on_join(channel, user_id):
 
 def read_json(file):
     if file == 'leaderboard':
-        with open("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/leaderboard.json", "r") as db:
+        with open("./leaderboard.json", "r") as db:
             data = json.load(db)
             db.close()
     elif file == 'ringtones':
-        with open("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/ringtones.json", "r") as db:
+        with open("./ringtones.json", "r") as db:
             data = json.load(db)
             db.close()
     return data
@@ -54,7 +54,7 @@ def leaderboard(state, sound=None):
             data.update({sound: 1})
         else:
             data[sound] += 1
-        with open("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/leaderboard.json", "w") as db:
+        with open("./leaderboard.json", "w") as db:
             json.dump(data, db)
 
     elif state == "leaderboard":
@@ -72,7 +72,7 @@ def leaderboard(state, sound=None):
 async def search_for_sound(args, state=None):
     sound_found = False
     sounds = {}
-    for file in os.listdir("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds"):
+    for file in os.listdir("./sounds"):
         likeness = fuzz.ratio(args.lower(), file.replace(".mp3", "").lower())
         if likeness >= 80:
             if likeness == 100:
@@ -110,7 +110,7 @@ async def sound(ctx, arg1, arg2=None):
             await ctx.respond(f"Sound name not entered, try: ``/sound play [sound name]``")
 
     elif arg1 == "random":
-        await play_sound(ctx, choice(os.listdir("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds")).replace(".mp3", "").title())
+        await play_sound(ctx, choice(os.listdir("./sounds")).replace(".mp3", "").title())
 
     elif arg1 == "leaderboard":
         embed = leaderboard(state="leaderboard")
@@ -120,9 +120,9 @@ async def sound(ctx, arg1, arg2=None):
 
 async def sound_list(ctx):
     file_str = ""
-    for file in os.listdir("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds"):
-        created_time = os.path.getctime(f'S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds/{file}')
-        length = MP3(f"S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds/{file}").info.length
+    for file in os.listdir("./sounds"):
+        created_time = os.path.getctime(f'./sounds/{file}')
+        length = MP3(f"./sounds/{file}").info.length
         if datetime.fromtimestamp(created_time) + timedelta(days=3) >= datetime.now():
             file_str += f"{file} | **NEW!**".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
         else:
@@ -132,7 +132,7 @@ async def sound_list(ctx):
         description=f"**/sound play [sound name]**\n{file_str}",
         colour = discord.Colour.dark_green()
     )
-    embed.set_footer(text=f"{len(os.listdir('S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds'))} unique sound files | {len(file_str)}/4096 chars")
+    embed.set_footer(text=f"{len(os.listdir('./sounds'))} unique sound files | {len(file_str)}/4096 chars")
     await ctx.respond(embed=embed)
 
 async def play_sound(ctx, sound):
@@ -153,7 +153,7 @@ async def play_sound(ctx, sound):
     if vc == True:
         active_voice = await voice_channel.connect()
         await asyncio.sleep(0.5)
-        active_voice.play(discord.FFmpegPCMAudio(executable='C:/ffmpeg/bin/ffmpeg.exe',source=f"S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds/{sound}.mp3"))
+        active_voice.play(discord.FFmpegPCMAudio(executable='/usr/bin/ffmpeg',source=f"./sounds/{sound}.mp3"))
         # Wait until audio is finished and then leave the VC
         await asyncio.sleep(2)
         while active_voice.is_playing():
@@ -168,13 +168,13 @@ async def set(ctx, arg):
     if arg.lower() != 'none':
         result = await search_for_sound(arg)
         if result[1] == True:
-            if MP3(f"S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/sounds/{result[0]}.mp3").info.length <= 10:
+            if MP3(f"./sounds/{result[0]}.mp3").info.length <= 10:
                 data = read_json('ringtones')
                 if str(ctx.author.id) not in data:
                     data.update({str(ctx.author.id): result[0]})
                 else:
                     data[str(ctx.author.id)] = result[0]
-                with open("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/ringtones.json", "w") as db:
+                with open("./ringtones.json", "w") as db:
                     json.dump(data, db)
                     db.close()
                 await ctx.respond(f"Your ringtone has been updated to {result[0].title()}!")
@@ -184,7 +184,7 @@ async def set(ctx, arg):
         data = read_json('ringtones')
         if str(ctx.author.id) in data:
             del data[str(ctx.author.id)]
-            with open("S:/Users/Sam/Desktop/PyCharm Projects/DnD_Sounds/ringtones.json", "w") as db:
+            with open("./ringtones.json", "w") as db:
                 json.dump(data, db)
                 db.close()
             await ctx.respond("Ringtone unset")
