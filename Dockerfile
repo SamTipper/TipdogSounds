@@ -8,7 +8,7 @@ RUN pip install -r requirements.txt
 
 RUN pip install py-cord==2.0.0b1
 
-RUN sudo apt install ffmpeg
+CMD ["sudo", "apt", "install", "ffmpeg"]
 
 COPY . .
 
