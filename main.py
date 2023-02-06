@@ -93,10 +93,6 @@ async def search_for_sound(args, state=None):
         return "Sound file not found, check your spelling and try again.", sound_found
 
 @client.slash_command()
-@discord.app_commands.describe(parameters={
-    "arg1": "play | list | random | leaderboard",
-    "arg2": "The name of the sound you would like"
-})
 async def sound(ctx, arg1, arg2=None):
     """Play a sound, find sounds, or set your theme tune as you enter the voice chat!"""
     if arg1.lower() == "list":
@@ -156,7 +152,7 @@ async def play_sound(ctx, sound):
     if vc == True:
         active_voice = await voice_channel.connect()
         await asyncio.sleep(0.5)
-        active_voice.play(discord.FFmpegPCMAudio(executable='/usr/bin/ffmpeg',source=f"./sounds/{sound}.mp3"))
+        active_voice.play(discord.FFmpegPCMAudio(executable='ffmpeg',source=f"./sounds/{sound}.mp3"))
         # Wait until audio is finished and then leave the VC
         await asyncio.sleep(2)
         while active_voice.is_playing():
