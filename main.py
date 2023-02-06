@@ -15,7 +15,6 @@ intents = discord.Intents.default()
 intents.messages = True
 intents.members = True
 env = load_dotenv()
-
 client = discord.Bot(intents=intents)
 
 @client.event
