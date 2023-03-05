@@ -16,6 +16,10 @@ intents.messages = True
 intents.members = True
 env = load_dotenv()
 client = discord.Bot(intents=intents)
+queue = []
+
+def add_to_queue(sound: str):
+    queue.append(sound)
 
 @client.event
 async def on_voice_state_update(member, before, after):
@@ -32,7 +36,9 @@ async def on_voice_state_update(member, before, after):
 async def play_on_join(channel, user_id):
     data = read_json('ringtones')
     if user_id in data:
-        await play_sound(channel, data[user_id])
+        add_to_queue(data[user_id])
+        if not discord.utils.get(client.voice_clients, guild=channel.guild):
+            await play_sound(channel, False)
 
 def read_json(file):
     if file == 'leaderboard':
@@ -49,9 +55,9 @@ def leaderboard(state, sound=None):
     data = read_json('leaderboard')
     if state == "add":
         if sound not in data:
-            data.update({sound: 1})
+            data.update({sound.lower(): 1})
         else:
-            data[sound] += 1
+            data[sound.lower()] += 1
         with open("./leaderboard.json", "w") as db:
             json.dump(data, db)
 
@@ -102,14 +108,23 @@ async def sound(ctx, arg1, arg2=None):
         if arg2 != None:
             result = await search_for_sound(arg2, 'normal') 
             if result[1] == True:
-                await play_sound(ctx, result[0])
+                add_to_queue(result[0])
+                if not discord.utils.get(client.voice_clients, guild=ctx.guild):
+                    await play_sound(ctx, True)
+                else:
+                    await ctx.respond(f'{result[0].title()} added to the queue!')
             else:
                 await ctx.respond(result[0])
         else:
             await ctx.respond(f"Sound name not entered, try: ``/sound play [sound name]``")
 
     elif arg1 == "random":
-        await play_sound(ctx, choice(os.listdir("./sounds")).replace(".mp3", "").title())
+        choice = choice(os.listdir("./sounds")).replace(".mp3", "").title()
+        add_to_queue(choice)
+        if not discord.utils.get(client.voice_clients, guild=ctx.guild):
+            await play_sound(ctx, True)
+        else:
+            await ctx.respond(f'{choice} added to the queue!')
 
     elif arg1 == "leaderboard":
         embed = leaderboard(state="leaderboard")
@@ -134,32 +149,46 @@ async def sound_list(ctx):
     embed.set_footer(text=f"{len(os.listdir('./sounds'))} unique sound files | {len(file_str)}/4096 chars")
     await ctx.respond(embed=embed)
 
-async def play_sound(ctx, sound):
+async def play_sound(ctx, in_channel):
     """Handles playing of sound"""
     # Connect to VC and play audio
-    vc = False
-    if isinstance(ctx, discord.channel.VoiceChannel):
-        voice_channel = ctx
-        vc = True
-    elif ctx.author.voice is not None:
-        await ctx.guild.get_member(int(os.environ.get("BOT_ID"))).edit(nick=sound.title())
-        voice_channel = ctx.author.voice.channel
-        await ctx.respond(f"Playing: {sound.title()}")
-        vc = True
-    else:
-        await ctx.respond('You\'re not in a channel!')
+    try:
+        vc = False
+        if isinstance(ctx, discord.channel.VoiceChannel):
+            voice_channel = ctx
+            vc = True
+        elif ctx.author.voice is not None:
+            voice_channel = ctx.author.voice.channel
+            vc = True
+        else:
+            await ctx.respond('You\'re not in a channel!')
 
-    if vc == True:
-        active_voice = await voice_channel.connect()
-        await asyncio.sleep(0.5)
-        active_voice.play(discord.FFmpegPCMAudio(executable='ffmpeg',source=f"./sounds/{sound}.mp3"))
-        # Wait until audio is finished and then leave the VC
-        await asyncio.sleep(2)
-        while active_voice.is_playing():
-            await asyncio.sleep(0.5)
-        await asyncio.sleep(2)
-        await active_voice.disconnect()
+        if vc == True:
+            active_voice = await voice_channel.connect()
+
+            while True:
+                if in_channel:
+                    await ctx.respond(f"Playing: {queue[0].title()}")
+                await ctx.guild.get_member(int(os.environ.get("BOT_ID"))).edit(nick=queue[0].title())
+                await asyncio.sleep(0.5)
+                active_voice.play(discord.FFmpegPCMAudio(executable='ffmpeg',source=f"./sounds/{queue[0]}.mp3"))
+                # Wait until audio is finished and then leave the VC
+                await asyncio.sleep(2)
+                while active_voice.is_playing():
+                    await asyncio.sleep(0.5)
+                await asyncio.sleep(2)
+                queue.pop(0)
+
+                if not queue:
+                    break
+
+            await active_voice.disconnect()
+            await ctx.guild.get_member(int(os.environ.get("BOT_ID"))).edit(nick="Tipdog Soundboard")
+
+    except Exception as e:
+        print(e)
         await ctx.guild.get_member(int(os.environ.get("BOT_ID"))).edit(nick="Tipdog Soundboard")
+        await ctx.respond('An error has occured, please try again later.')
 
 @client.slash_command()
 async def set(ctx, arg):
