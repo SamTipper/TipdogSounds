@@ -8,6 +8,10 @@ RUN pip install -r requirements.txt
 
 RUN pip install py-cord==2.0.0b1
 
+RUN apt-get update -y
+
+RUN apt-get install ffmpeg -y
+
 COPY . .
 
 CMD [ "python3", "main.py" ]
