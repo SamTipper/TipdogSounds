@@ -118,7 +118,7 @@ async def sound(ctx, arg1, arg2=None):
         else:
             await ctx.respond(f"Sound name not entered, try: ``/sound play [sound name]``")
 
-    elif arg1 == "random":
+    elif arg1.lower() == "random":
         choice = choice(os.listdir("./sounds")).replace(".mp3", "").title()
         add_to_queue(choice)
         if not discord.utils.get(client.voice_clients, guild=ctx.guild):
@@ -126,7 +126,7 @@ async def sound(ctx, arg1, arg2=None):
         else:
             await ctx.respond(f'{choice} added to the queue!')
 
-    elif arg1 == "leaderboard":
+    elif arg1.lower() == "leaderboard":
         embed = leaderboard(state="leaderboard")
         await ctx.respond(embed=embed)
     else:
@@ -134,7 +134,7 @@ async def sound(ctx, arg1, arg2=None):
 
 async def sound_list(ctx):
     file_str = ""
-    for file in os.listdir("./sounds"):
+    for file in sorted(os.listdir("./sounds")):
         created_time = os.path.getctime(f'./sounds/{file}')
         length = MP3(f"./sounds/{file}").info.length
         if datetime.fromtimestamp(created_time) + timedelta(days=3) >= datetime.now():
