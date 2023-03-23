@@ -136,7 +136,7 @@ async def sound_list(ctx):
     file_str = ""
     for file in sorted(os.listdir("./sounds")):
         length = MP3(f"./sounds/{file}").info.length
-        file_str += f"{file}".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
+        file_str += f"**{file}**".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
         
     embed = discord.Embed(
         title = 'All Sounds',
