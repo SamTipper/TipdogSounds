@@ -135,12 +135,9 @@ async def sound(ctx, arg1, arg2=None):
 async def sound_list(ctx):
     file_str = ""
     for file in sorted(os.listdir("./sounds")):
-        created_time = os.path.getctime(f'./sounds/{file}')
         length = MP3(f"./sounds/{file}").info.length
-        if datetime.fromtimestamp(created_time) + timedelta(days=3) >= datetime.now():
-            file_str += f"{file} | **NEW!**".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
-        else:
-            file_str += f"{file}".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
+        file_str += f"{file}".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
+        
     embed = discord.Embed(
         title = 'All Sounds',
         description=f"**/sound play [sound name]**\n{file_str}",
