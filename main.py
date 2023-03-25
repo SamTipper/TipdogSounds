@@ -132,13 +132,10 @@ async def random(ctx):
 async def sound_list(ctx):
     """Find a sound to play."""
     file_str = ""
-    for file in os.listdir("./sounds"):
-        created_time = os.path.getctime(f'./sounds/{file}')
+    for file in sorted(os.listdir("./sounds")):
         length = MP3(f"./sounds/{file}").info.length
-        if datetime.fromtimestamp(created_time) + timedelta(days=3) >= datetime.now():
-            file_str += f"{file} | **NEW!**".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
-        else:
-            file_str += f"{file}".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
+        file_str += f"**{file}**".replace(".mp3", "").title() + f" *| {round(length, 1)} s*\n"
+        
     embed = discord.Embed(
         title = 'All Sounds',
         description=f"**/sound play [sound name]**\n{file_str}",
