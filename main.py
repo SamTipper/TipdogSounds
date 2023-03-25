@@ -33,12 +33,14 @@ async def on_voice_state_update(member, before, after):
             voice = discord.utils.get(member.guild.voice_channels, name=after.channel.name)
             await play_on_join(voice, str(member.id))
 
+
 async def play_on_join(channel, user_id):
     data = read_json('ringtones')
     if user_id in data:
         add_to_queue(data[user_id])
         if not discord.utils.get(client.voice_clients, guild=channel.guild):
             await play_sound(channel, False)
+
 
 def read_json(file):
     if file == 'leaderboard':
@@ -50,6 +52,7 @@ def read_json(file):
             data = json.load(db)
             db.close()
     return data
+
 
 def leaderboard(state, sound=None):
     data = read_json('leaderboard')
@@ -72,6 +75,7 @@ def leaderboard(state, sound=None):
             colour = discord.Colour.dark_green()
         )  
         return embed
+
 
 async def search_for_sound(args, state=None):
     sound_found = False
@@ -98,41 +102,35 @@ async def search_for_sound(args, state=None):
     else:
         return "Sound file not found, check your spelling and try again.", sound_found
 
+
 @client.slash_command()
-async def sound(ctx, arg1, arg2=None):
-    """Play a sound, find sounds, or set your theme tune as you enter the voice chat!"""
-    if arg1.lower() == "list":
-        await sound_list(ctx)
-
-    elif arg1.lower() == "play":
-        if arg2 != None:
-            result = await search_for_sound(arg2, 'normal') 
-            if result[1] == True:
-                add_to_queue(result[0])
-                if not discord.utils.get(client.voice_clients, guild=ctx.guild):
-                    await play_sound(ctx, True)
-                else:
-                    await ctx.respond(f'{result[0].title()} added to the queue!')
-            else:
-                await ctx.respond(result[0])
-        else:
-            await ctx.respond(f"Sound name not entered, try: ``/sound play [sound name]``")
-
-    elif arg1 == "random":
-        choice = choice(os.listdir("./sounds")).replace(".mp3", "").title()
-        add_to_queue(choice)
+async def play(ctx, sound):
+    """Play a sound in the voice chat!"""
+    result = await search_for_sound(sound, 'normal')
+    if result[1] == True:
+        add_to_queue(result[0])
         if not discord.utils.get(client.voice_clients, guild=ctx.guild):
             await play_sound(ctx, True)
         else:
-            await ctx.respond(f'{choice} added to the queue!')
-
-    elif arg1 == "leaderboard":
-        embed = leaderboard(state="leaderboard")
-        await ctx.respond(embed=embed)
+            await ctx.respond(f'{result[0].title()} added to the queue!')
     else:
-        await ctx.respond("Command used incorrectly, ``/sound list``\n``/sound play [sound name]``\n``/sound random``\n``/sound leaderboard``")
+        await ctx.respond(result[0])
 
+
+@client.slash_command()
+async def random(ctx):
+    """Play a random sound!"""
+    random_choice = choice(os.listdir("./sounds")).replace(".mp3", "").title()
+    add_to_queue(random_choice)
+    if not discord.utils.get(client.voice_clients, guild=ctx.guild):
+        await play_sound(ctx, True)
+    else:
+        await ctx.respond(f'{random_choice} added to the queue!')
+
+
+@client.slash_command(name="list")
 async def sound_list(ctx):
+    """Find a sound to play."""
     file_str = ""
     for file in os.listdir("./sounds"):
         created_time = os.path.getctime(f'./sounds/{file}')
@@ -148,6 +146,13 @@ async def sound_list(ctx):
     )
     embed.set_footer(text=f"{len(os.listdir('./sounds'))} unique sound files | {len(file_str)}/4096 chars")
     await ctx.respond(embed=embed)
+
+
+@client.slash_command(name='leaderboard')
+async def display_leaderboard(ctx):
+    embed = leaderboard(state="leaderboard")
+    await ctx.respond(embed=embed)
+
 
 async def play_sound(ctx, in_channel):
     """Handles playing of sound"""
